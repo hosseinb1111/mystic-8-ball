@@ -2,13 +2,11 @@
 
 
 
-\
 
 A polished and interactive **Magic 8-Ball game** built with pure HTML, CSS, and vanilla JavaScript.
 
 Ask a yes-or-no question, shake the ball, and let the mysterious oracle reveal your fate. ✨
 
-🔗 **Try it live**
 
 ---
 
