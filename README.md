@@ -1,7 +1,16 @@
 # 🎱 Mystic 8-Ball
 
+<p align="center">
+  <img src="example.png" alt="Mystic 8-Ball screenshot: a glossy black 8-ball showing the answer &quot;My sources say no&quot; above the question box and recent-questions history" width="720">
+</p>
 
-
+<p align="center">
+  <a href="https://hosseinb1111.github.io/mystic-8-ball/"><b>▶ Play it live</b></a>
+  &nbsp;•&nbsp;
+  <a href="LICENSE">MIT License</a>
+  &nbsp;•&nbsp;
+  <img alt="zero dependencies" src="https://img.shields.io/badge/dependencies-0-brightgreen">
+</p>
 
 A polished and interactive **Magic 8-Ball game** built with pure HTML, CSS, and vanilla JavaScript.
 
@@ -22,6 +31,8 @@ A visually detailed 8-Ball with:
 * Glowing answer window
 * Shake animation
 * Answer reveal animation
+* Classic "8" badge that gives way to the answer window
+* Answer-coloured glow (green for yes, blue for maybe, red for no)
 
 ### 🔮 Random Answers
 
@@ -39,7 +50,7 @@ Every question and answer can be stored locally in the browser.
 
 Your recent questions remain available after refreshing the page.
 
-Up to 20 previous questions are remembered.
+Up to 20 previous questions are remembered, with timestamps and a running Yes / Maybe / No tally.
 
 ### 💾 Local Storage
 
@@ -61,9 +72,13 @@ The selected theme is remembered automatically.
 
 The game generates subtle sound effects directly in the browser using the **Web Audio API**.
 
-Different answer types can produce different tones.
+Different answer types produce different tones.
 
 Sound can be enabled or disabled at any time.
+
+### 💡 Suggested Questions
+
+Not sure what to ask? Tap one of the example chips under the input to fill it in.
 
 ### 📋 Copy Answers
 
@@ -101,7 +116,7 @@ The interface includes:
 * Focus states
 * Accessible button labels
 * `aria-live` answer/status updates
-* Reduced-motion support
+* Reduced-motion support (including the footer animations)
 * Keyboard activation for the 8-Ball
 
 ---
@@ -177,6 +192,7 @@ are required.
 mystic-8-ball/
 │
 ├── index.html
+├── worker.js
 ├── example.png
 ├── README.md
 └── LICENSE
@@ -196,9 +212,13 @@ The complete application, including:
 * History
 * Game logic
 
+### `worker.js`
+
+Optional Cloudflare Worker that serves the same page, for anyone who prefers Workers over GitHub Pages. It is generated from `index.html`.
+
 ### `example.png`
 
-Screenshot displayed in the README.
+Screenshot displayed at the top of this README.
 
 ### `README.md`
 
@@ -428,7 +448,7 @@ html[data-theme="light"] {
 }
 ```
 
-The selected theme is stored in `localStorage`.
+The selected theme is stored in `localStorage`. On a first visit the page follows your system light/dark preference.
 
 ---
 
