@@ -1,7 +1,5 @@
 // Generated from index.html. Edit index.html, then regenerate this file.
-export default {
-  async fetch() {
-    const html = `<!DOCTYPE html>
+const html = `<!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
@@ -242,7 +240,8 @@ export default {
       transition: transform .2s ease, background .25s ease, border-color .25s ease;
     }
     .icon-button:hover { transform: translateY(-2px); background: var(--surface-strong); border-color: var(--border-strong); }
-    .icon-button:active { transform: translateY(0) scale(.95); }
+    .icon-button:active:not(:disabled) { transform: translateY(0) scale(.95); }
+    .icon-button:disabled { opacity: .42; cursor: not-allowed; transform: none; }
 
     /* =========================================
        HEADER
@@ -280,6 +279,13 @@ export default {
       display: grid;
       place-items: center;
       cursor: pointer;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      text-align: inherit;
+      appearance: none;
+      touch-action: manipulation;
       user-select: none;
       -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent;
@@ -450,6 +456,9 @@ export default {
     }
 
     .question-row { display: flex; gap: 10px; }
+    .question-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 28px; }
+    .question-counter { flex: none; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .question-counter.near-limit { color: var(--neg); }
 
     .question-input {
       flex: 1;
@@ -488,7 +497,6 @@ export default {
     .ask-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 14px 32px var(--accent-shadow); filter: brightness(1.05); }
     .ask-button:active:not(:disabled) { transform: scale(.96); }
     .ask-button:disabled { opacity: .6; cursor: wait; }
-
     .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; justify-content: center; }
     .chip {
       padding: 6px 12px;
@@ -502,6 +510,7 @@ export default {
     .chip:hover { transform: translateY(-1px); border-color: var(--accent); }
 
     .hint { margin-top: 11px; text-align: center; color: var(--muted); font-size: 12px; }
+    .question-footer .hint { flex: 1; margin: 11px 0 0; text-align: left; }
 
     .status {
       min-height: 22px;
@@ -538,6 +547,9 @@ export default {
       padding: 14px 18px;
       border-bottom: 1px solid var(--border);
     }
+    .panel-heading, .history-actions { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .history-count { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .history-actions { flex: none; }
 
     .panel-title {
       font-size: 12px;
@@ -557,6 +569,7 @@ export default {
       transition: color .2s ease, background .2s ease;
     }
     .clear-button:hover { color: var(--text); background: var(--fact-bg); }
+    .clear-button:disabled { opacity: .45; cursor: not-allowed; }
     .clear-button[hidden] { display: none; }
 
     /* Stats */
@@ -765,10 +778,25 @@ export default {
       .question-input { flex: none; width: 100%; }
       .ask-button { width: 100%; }
       .how-to-steps { grid-template-columns: 1fr; }
+      .panel-header { padding: 13px 14px; }
+      .panel-heading, .history-actions { gap: 7px; }
+      .history-count { font-size: 10px; }
     }
 
     @media (max-width: 400px) {
       .footer-bottom { font-size: .65rem; }
+      .question-footer { align-items: flex-start; }
+      .question-footer .hint { font-size: 11px; }
+      .history-actions { gap: 2px; }
+    }
+
+    @media (hover: none) {
+      .ball-stage:hover .ball { transform: none; }
+      .ball-stage:hover .ball-glow { opacity: .4; transform: none; }
+    }
+
+    @media (max-width: 600px) {
+      body { background-attachment: scroll; }
     }
 
     /* =========================================
@@ -804,9 +832,9 @@ export default {
       <div class="brand"><span class="brand-dot"></span>Mystic Oracle</div>
 
       <div class="top-actions">
-        <button class="icon-button" id="themeButton" type="button" title="Toggle theme" aria-label="Toggle theme" aria-pressed="false">🌙</button>
-        <button class="icon-button" id="soundButton" type="button" title="Toggle sound" aria-label="Toggle sound" aria-pressed="true">🔊</button>
-        <button class="icon-button" id="copyButton" type="button" title="Copy current answer" aria-label="Copy current answer">📋</button>
+        <button class="icon-button" id="themeButton" type="button" title="Switch to light mode" aria-label="Switch to light mode" aria-pressed="false">🌙</button>
+        <button class="icon-button" id="soundButton" type="button" title="Mute sound" aria-label="Mute sound" aria-pressed="true">🔊</button>
+        <button class="icon-button" id="copyButton" type="button" title="Copy current answer" aria-label="Copy current answer" disabled>📋</button>
       </div>
     </header>
 
@@ -816,7 +844,7 @@ export default {
     </section>
 
     <!-- MAGIC 8-BALL -->
-    <div class="ball-stage" id="ballStage" role="button" tabindex="0" aria-label="Shake the Magic 8-Ball">
+    <button class="ball-stage" id="ballStage" type="button" aria-label="Shake the Magic 8-Ball" aria-describedby="questionHint">
       <div class="ball-glow"></div>
       <div class="ball-float">
         <div class="ball" id="ball">
@@ -832,7 +860,7 @@ export default {
         </div>
       </div>
       <span class="sr-only" id="srAnswer" aria-live="polite"></span>
-    </div>
+    </button>
 
     <!-- QUESTION -->
     <section class="question-card">
@@ -844,15 +872,21 @@ export default {
           autocomplete="off"
           enterkeyhint="send"
           maxlength="180"
+          autocapitalize="sentences"
+          spellcheck="true"
           placeholder="Ask a yes-or-no question..."
           aria-label="Your question"
+          aria-describedby="questionHint"
         >
         <button id="askButton" class="ask-button" type="button">🔮 Ask</button>
       </div>
 
       <div class="chips" id="chips" aria-label="Example questions"></div>
 
-      <div class="hint">Press Enter to ask • Click the ball to shake it</div>
+      <div class="question-footer">
+        <div class="hint" id="questionHint">Press Enter to ask • Click the ball to shake it</div>
+        <output class="question-counter" id="questionCounter" aria-hidden="true">0 / 180</output>
+      </div>
     </section>
 
     <div class="status" id="status" role="status" aria-live="polite"></div>
@@ -860,11 +894,17 @@ export default {
     <!-- HISTORY -->
     <section class="panel">
       <div class="panel-header">
-        <div class="panel-title">📜 Recent Questions</div>
-        <button id="clearHistory" class="clear-button" type="button" hidden>Clear</button>
+        <div class="panel-heading">
+          <h2 class="panel-title">📜 Recent Questions</h2>
+          <span class="history-count" id="historyCount">0 / 20</span>
+        </div>
+        <div class="history-actions">
+          <button id="exportHistory" class="clear-button" type="button" hidden>Export</button>
+          <button id="clearHistory" class="clear-button" type="button" hidden>Clear</button>
+        </div>
       </div>
 
-      <div class="stats" id="stats" hidden>
+      <div class="stats" id="stats" role="group" aria-label="Answer totals in your saved history" hidden>
         <div class="stat pos"><b id="statPos">0</b><span>Yes</span></div>
         <div class="stat neu"><b id="statNeu">0</b><span>Maybe</span></div>
         <div class="stat neg"><b id="statNeg">0</b><span>No</span></div>
@@ -896,11 +936,11 @@ export default {
         </div>
       </div>
 
-      <div class="how-to-tip">💡 Tip: Yes-or-no questions work best. Asking the same thing twice won't change the odds.</div>
+      <div class="how-to-tip">💡 For fun only: every answer is random, not a prediction or advice. Asking the same question twice does not change the odds.</div>
     </section>
 
     <footer class="footer">
-      Mystic Oracle • Magic 8-Ball • No tracking, no accounts
+      Mystic Oracle • Just for fun • No tracking, no accounts
     </footer>
 
     <div class="footer-bottom">
@@ -977,21 +1017,37 @@ export default {
       /* ---------- State ---------- */
       var KEYS = { history: "magic-8-ball-history", sound: "magic-8-ball-sound", theme: "magic-8-ball-theme" };
       var MAX_HISTORY = 20;
+      var MAX_QUESTION_LENGTH = 180;
       var isShaking = false, currentAnswer = null, lastIndex = -1, statusTimer = null;
       var history = [], soundEnabled = true;
+      var savedTheme = read(KEYS.theme);
+      var followsSystemTheme = savedTheme !== "light" && savedTheme !== "dark";
       var theme = root.getAttribute("data-theme") === "light" ? "light" : "dark";
+      var questionCounter = $("questionCounter"), historyCount = $("historyCount");
+      var exportButton = $("exportHistory");
 
       /* ---------- Storage ---------- */
-      function store(key, value) { try { localStorage.setItem(key, value); } catch (e) {} }
+      function store(key, value) { try { localStorage.setItem(key, value); return true; } catch (e) { return false; } }
       function read(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
 
       function loadHistory() {
         try {
           var parsed = JSON.parse(read(KEYS.history) || "[]");
           if (!Array.isArray(parsed)) return [];
-          return parsed.filter(function (i) {
-            return i && typeof i.question === "string" && typeof i.answer === "string";
-          }).slice(0, MAX_HISTORY);
+          return parsed.filter(function (item) {
+            return item && typeof item.question === "string" && typeof item.answer === "string";
+          }).slice(0, MAX_HISTORY).map(function (item) {
+            var validType = item.type === "positive" || item.type === "neutral" || item.type === "negative";
+            var timestamp = Number(item.ts);
+            return {
+              id: typeof item.id === "string" ? item.id.slice(0, 80) : "",
+              question: item.question.trim().slice(0, MAX_QUESTION_LENGTH),
+              answer: item.answer.slice(0, 100),
+              emoji: typeof item.emoji === "string" ? item.emoji.slice(0, 12) : "🔮",
+              type: validType ? item.type : "neutral",
+              ts: Number.isFinite(timestamp) && timestamp > 0 && timestamp <= 8640000000000000 ? timestamp : 0
+            };
+          }).filter(function (item) { return item.question && item.answer; });
         } catch (e) { return []; }
       }
       function saveHistory() { store(KEYS.history, JSON.stringify(history)); }
@@ -1024,10 +1080,21 @@ export default {
         themeMeta.setAttribute("content", light ? "#eef1f8" : "#07070c");
       }
       themeButton.addEventListener("click", function () {
+        followsSystemTheme = false;
         theme = theme === "dark" ? "light" : "dark";
         applyTheme();
         store(KEYS.theme, theme);
       });
+      if (window.matchMedia) {
+        var themeQuery = window.matchMedia("(prefers-color-scheme: light)");
+        var onSystemThemeChange = function (event) {
+          if (!followsSystemTheme) return;
+          theme = event.matches ? "light" : "dark";
+          applyTheme();
+        };
+        if (themeQuery.addEventListener) themeQuery.addEventListener("change", onSystemThemeChange);
+        else if (themeQuery.addListener) themeQuery.addListener(onSystemThemeChange);
+      }
 
       /* ---------- Sound ---------- */
       var audioCtx = null;
@@ -1071,8 +1138,10 @@ export default {
 
       function applySound() {
         soundButton.textContent = soundEnabled ? "🔊" : "🔇";
+        var label = soundEnabled ? "Mute sound" : "Enable sound";
         soundButton.setAttribute("aria-pressed", String(soundEnabled));
-        soundButton.setAttribute("title", soundEnabled ? "Mute sound" : "Enable sound");
+        soundButton.setAttribute("aria-label", label);
+        soundButton.setAttribute("title", label);
       }
       soundButton.addEventListener("click", function () {
         soundEnabled = !soundEnabled;
@@ -1102,7 +1171,7 @@ export default {
         var w = answerEl.scrollWidth, h = answerEl.scrollHeight;
         if (!w || !h) return;
         var s = Math.min(1, box.clientWidth / w, box.clientHeight / h);
-        answerEl.style.transform = "scale(" + Math.max(.5, s * .95) + ")";
+        answerEl.style.transform = "scale(" + Math.max(.35, s * .95) + ")";
       }
       if ("ResizeObserver" in window) {
         new ResizeObserver(function () { requestAnimationFrame(fitAnswer); }).observe(answerEl.parentElement);
@@ -1118,6 +1187,7 @@ export default {
         answerEl.className = "answer thinking";
         answerEl.textContent = "…";
         answerEl.style.transform = "scale(1)";
+        srAnswer.textContent = "The 8-Ball is thinking.";
       }
 
       function showAnswer(result) {
@@ -1141,7 +1211,8 @@ export default {
         ball.classList.add("answering");
         setTimeout(function () { ball.classList.remove("answering"); }, 1400);
 
-        srAnswer.textContent = result.text;
+        srAnswer.textContent = "The 8-Ball says: " + result.text;
+        copyButton.disabled = false;
       }
 
       /* ---------- Copy ---------- */
@@ -1150,21 +1221,23 @@ export default {
         function fail() { setStatus("Couldn't copy to clipboard.", "error"); }
 
         function legacy() {
+          var ta = document.createElement("textarea");
           try {
-            var ta = document.createElement("textarea");
             ta.value = text;
             ta.setAttribute("readonly", "");
-            ta.style.cssText = "position:fixed;top:-1000px;opacity:0";
+            ta.setAttribute("aria-hidden", "true");
+            ta.style.cssText = "position:fixed;top:-1000px;left:-1000px;opacity:0";
             document.body.appendChild(ta);
             ta.select();
             var done = document.execCommand("copy");
-            document.body.removeChild(ta);
             done ? ok() : fail();
           } catch (e) { fail(); }
+          finally { if (ta.parentNode) ta.parentNode.removeChild(ta); }
         }
 
         if (navigator.clipboard && window.isSecureContext) {
-          navigator.clipboard.writeText(text).then(ok, legacy);
+          try { navigator.clipboard.writeText(text).then(ok, legacy); }
+          catch (e) { legacy(); }
         } else {
           legacy();
         }
@@ -1174,7 +1247,6 @@ export default {
         if (!currentAnswer) { setStatus("Nothing to copy yet. Ask first!", "error"); return; }
         copyText(currentAnswer.emoji + " " + currentAnswer.text, "Answer copied!");
       });
-
       /* ---------- History ---------- */
       function timeAgo(ts) {
         if (!ts) return "";
@@ -1190,7 +1262,9 @@ export default {
       function renderHistory(animate) {
         historyList.textContent = "";
         clearButton.hidden = !history.length;
+        exportButton.hidden = !history.length;
         statsEl.hidden = !history.length;
+        historyCount.textContent = history.length + " / " + MAX_HISTORY;
 
         if (!history.length) {
           var empty = document.createElement("div");
@@ -1214,9 +1288,10 @@ export default {
           var q = document.createElement("div");
           q.className = "history-question";
           q.textContent = item.question;
-          var t = document.createElement("div");
+          var t = document.createElement("time");
           t.className = "history-time";
           t.textContent = timeAgo(item.ts);
+          if (item.ts) t.dateTime = new Date(item.ts).toISOString();
           meta.appendChild(q); meta.appendChild(t);
 
           var row = document.createElement("div");
@@ -1245,10 +1320,41 @@ export default {
       }
 
       clearButton.addEventListener("click", function () {
+        if (!history.length) return;
+        if (!window.confirm("Clear all saved questions from this browser? This cannot be undone.")) return;
         history = [];
         saveHistory();
         renderHistory();
-        setStatus("History cleared.");
+        setStatus("Your saved history has been cleared.");
+      });
+
+      exportButton.addEventListener("click", function () {
+        if (!history.length) return;
+        var payload = {
+          app: "Mystic 8-Ball",
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          history: history.map(function (item) {
+            return {
+              question: item.question,
+              answer: item.answer,
+              emoji: item.emoji,
+              type: item.type,
+              askedAt: item.ts ? new Date(item.ts).toISOString() : null
+            };
+          })
+        };
+        var blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement("a");
+        link.href = url;
+        link.download = "mystic-8-ball-history-" + new Date().toISOString().slice(0, 10) + ".json";
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+        setStatus("History exported as a JSON file.", "success");
       });
 
       /* ---------- Ask ---------- */
@@ -1267,7 +1373,9 @@ export default {
 
         isShaking = true;
         askButton.disabled = true;
+        askButton.textContent = "✨ Asking…";
         input.disabled = true;
+        ballStage.setAttribute("aria-busy", "true");
         ball.classList.remove("answering");
         ball.classList.remove("shaking");
         void ball.offsetWidth;
@@ -1297,11 +1405,15 @@ export default {
 
           isShaking = false;
           askButton.disabled = false;
+          askButton.textContent = "🔮 Ask";
           input.disabled = false;
           input.value = "";
+          updateQuestionCounter();
+          updateBallLabel();
+          ballStage.removeAttribute("aria-busy");
           ball.classList.remove("shaking");
           setStatus("The universe has spoken.", "success");
-          if (!("ontouchstart" in window)) input.focus();
+          if (!window.matchMedia || !window.matchMedia("(pointer: coarse)").matches) input.focus();
         }, reduceMotion ? 250 : 920);
       }
 
@@ -1312,8 +1424,22 @@ export default {
       });
 
       ballStage.addEventListener("click", ask);
-      ballStage.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); ask(); }
+
+      /* ---------- Question counter + accessible ball label ---------- */
+      function updateQuestionCounter() {
+        var length = input.value.length;
+        questionCounter.textContent = length + " / " + MAX_QUESTION_LENGTH;
+        questionCounter.classList.toggle("near-limit", length >= MAX_QUESTION_LENGTH - 20);
+      }
+      function updateBallLabel() {
+        ballStage.setAttribute("aria-label", input.value.trim()
+          ? "Ask the 8-Ball using your current question"
+          : "Shake the Magic 8-Ball");
+      }
+      input.addEventListener("input", function () {
+        updateQuestionCounter();
+        updateBallLabel();
+        input.classList.remove("shake-error");
       });
 
       /* ---------- Suggestions ---------- */
@@ -1325,6 +1451,8 @@ export default {
         b.addEventListener("click", function () {
           if (isShaking) return;
           input.value = text;
+          updateQuestionCounter();
+          updateBallLabel();
           input.focus();
         });
         chips.appendChild(b);
@@ -1346,21 +1474,45 @@ export default {
       /* ---------- Init ---------- */
       applyTheme();
       applySound();
+      updateQuestionCounter();
+      updateBallLabel();
       renderHistory();
-      setInterval(renderHistory, 60000); /* refresh "x min ago" labels */
+      if (history.length) {
+        var latest = history[0];
+        currentAnswer = { text: latest.answer, emoji: latest.emoji, type: latest.type };
+        lastIndex = answers.findIndex(function (answer) { return answer.text === latest.answer; });
+        showAnswer(currentAnswer);
+      }
+      setInterval(renderHistory, 60000); /* refresh relative timestamps */
     })();
   </script>
 </body>
 </html>
 `;
 
-    return new Response(html, {
-      headers: {
-        "content-type": "text/html; charset=UTF-8",
-        "cache-control": "public, max-age=300",
-        "x-content-type-options": "nosniff",
-        "referrer-policy": "strict-origin-when-cross-origin"
-      }
+const securityHeaders = {
+  "content-type": "text/html; charset=UTF-8",
+  "cache-control": "public, max-age=300",
+  "content-security-policy": "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; object-src 'none'",
+  "permissions-policy": "camera=(), geolocation=(), microphone=()",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+  "cross-origin-opener-policy": "same-origin"
+};
+
+export default {
+  async fetch(request) {
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      return new Response("Method not allowed", {
+        status: 405,
+        headers: { ...securityHeaders, "content-type": "text/plain; charset=UTF-8", allow: "GET, HEAD" }
+      });
+    }
+
+    return new Response(request.method === "HEAD" ? null : html, {
+      status: 200,
+      headers: securityHeaders
     });
   }
 };
