@@ -50,23 +50,23 @@ Every question and answer can be stored locally in the browser.
 
 Your recent questions remain available after refreshing the page.
 
-Up to 20 previous questions are remembered, with timestamps and a running Yes / Maybe / No tally.
+Up to 20 previous questions are remembered, with timestamps and a running Yes / Maybe / No tally. The latest answer is restored when you reopen the page, so you can still copy it after a refresh.
 
 ### 💾 Local Storage
 
-The following preferences are saved locally:
+The following preferences are saved locally in your browser:
 
-* Question history
+* Up to 20 question-and-answer history entries
 * Sound preference
-* Light/dark theme
+* Manually selected light/dark theme (otherwise the system preference is followed)
 
-No account or backend is required.
+There is no account, backend, analytics, or external API. Exported history is created locally by your browser.
 
 ### 🌙 Light & Dark Mode
 
 Switch between two visual themes using the theme button.
 
-The selected theme is remembered automatically.
+The game follows your device's light/dark preference until you choose a theme manually. Your manual choice is remembered automatically.
 
 ### 🔊 Sound Effects
 
@@ -84,7 +84,7 @@ Not sure what to ask? Tap one of the example chips under the input to fill it in
 
 Copy the current answer with one click.
 
-Every answer in the history also has its own copy button.
+Every answer in the history also has its own copy button. You can also export your saved questions as a JSON file or clear the history (with a confirmation).
 
 ### 🎨 Custom Text Selection
 
@@ -112,12 +112,11 @@ The game adapts to different screen sizes and works on:
 
 The interface includes:
 
-* Keyboard navigation
-* Focus states
-* Accessible button labels
-* `aria-live` answer/status updates
+* Native keyboard-operable buttons, including the 8-Ball
+* Visible focus states and descriptive control labels
+* Screen-reader announcements for answers and status updates
+* A live question-length counter
 * Reduced-motion support (including the footer animations)
-* Keyboard activation for the 8-Ball
 
 ---
 
@@ -355,9 +354,9 @@ Reveal the answer
 Save question + answer
 ```
 
-The question itself does **not** determine the answer.
+The question itself does **not** determine the answer. All 20 answers are equally likely: 10 positive (50%), 5 neutral (25%), and 5 negative (25%). The same answer is not repeated twice in a row, including after a page refresh when the latest answer is available in history.
 
-The result is intentionally random, just like a traditional Magic 8-Ball.
+The result is intentionally random, just like a traditional Magic 8-Ball. It is for entertainment only, not a prediction or advice.
 
 ---
 
